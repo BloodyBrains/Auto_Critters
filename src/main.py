@@ -1,37 +1,39 @@
+import sys
 import pygame
 
-# Initialize Pygame
-pygame.init()
+import constants as c
+import init
+import game
+from components.event_listener import GameEventListener
 
-# Screen dimensions
-SCREEN_WIDTH = 800
-SCREEN_HEIGHT = 600
-
-# Create the screen
-screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-pygame.display.set_caption("New Game Project")
-
-# Clock for controlling the frame rate
-clock = pygame.time.Clock()
 
 # Main game loop
 def main():
-    running = True
-    while running:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
+    # Initialization
+    screen = init.get_display()
+    clock = init.get_clock()    
+    camera = init.get_camera()
+    event_manager = init.get_event_manager()    
+    gui_manager = init.get_gui_manager()
+    game_states = init.get_game_states()    
 
-        # Clear the screen
-        screen.fill((0, 0, 0))
 
-        # Update the display
-        pygame.display.flip()
+    # Instantiate the Game object with dependencies
+    game_controller = game.Game(
+        screen,
+        event_manager,
+        gui_manager,
+        camera,
+        clock,
+        game_states,
+        c.START_STATE
+    )
 
-        # Cap the frame rate
-        clock.tick(60)
+    # Start the game loop
+    game_controller.run()
 
     pygame.quit()
+    sys.exit()
 
 if __name__ == "__main__":
     main()
