@@ -81,4 +81,15 @@ class EventManager:
                 if handled:
                     break
 
+    def queue_event(self, custom_event_type, **event_data):
+        """Queues a custom pygame.event.Event() object to the pygame event queue."""
+        ev = pygame.event.Event(custom_event_type, event_data)
+        pygame.event.post(ev)
+
+
+# CUSTOM EVENT TYPES---------------------------------
+EV_GRID_ROTATED_R = pygame.event.custom_type() #TODO: Consolidate this into one event a pass a clockwise flag
+
+EV_GRID_ROTATED_L = pygame.event.custom_type()
+
     

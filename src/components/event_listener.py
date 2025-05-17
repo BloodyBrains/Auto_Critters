@@ -29,7 +29,7 @@ class EventListener(ABC):
 
 class CameraEventListener(EventListener):
     """
-    Concrete implementation of a generic event listener.
+    Concrete implementation of an EventListener.
     """
     def __init__(self, camera):
         self.camera = camera
@@ -40,7 +40,7 @@ class CameraEventListener(EventListener):
 
     def notify(self, event):
         """
-        Notify the listener of a generic event.
+        Notify the listener of a subscribed event.
 
         :param event: The event to notify.
         """
@@ -105,13 +105,14 @@ class IsoGridEventListener(EventListener):
     """
     Concrete implementation of an event listener for the IsoGrid.
     """
-    def __init__(self):
+    def __init__(self, grid):
         """
         Initialize the IsoGridEventListener.
 
         :param grid: The IsoGrid instance to notify.
         """
 
+        self.grid = grid
         self.subscriptions = [MOUSEBUTTONDOWN, MOUSEBUTTONUP, K_TAB]
 
     def on_event(self, event):
@@ -128,4 +129,7 @@ class IsoGridEventListener(EventListener):
 
         :param event: The event to notify.
         """
-        pass
+        if event.type == KEYDOWN:
+            if event.key == K_TAB:
+                self.grid.rotate_grid()
+            

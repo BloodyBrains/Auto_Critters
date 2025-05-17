@@ -4,6 +4,7 @@ import pygame
 import constants as c
 from components.event_listener import IsoGridEventListener
 from assets import battlestate_sprites, grid_tile_sprites, elevation_sprites
+from events import EV_GRID_ROTATED_L, EV_GRID_ROTATED_R
 
 class Tile:
     """Represents a tile in the isometric grid."""
@@ -22,12 +23,11 @@ class IsoGrid:
         self.tile_height = c.TILE_HEIGHT
         self.tile_sprites = grid_tile_sprites
         self.wall_sprites = elevation_sprites
-
+        self.map_data = map_data
         self.full_map_surf = None
         
-        self.map_data = map_data
-        self.listener = IsoGridEventListener()
-        self.event_manager = event_manager
+        self.listener = IsoGridEventListener(self)
+        self.event_manager = event_manager               
         self.event_manager.subscribe(self.listener)
         self.render_list = []  # ((sprite, position), ...)
         self.pos = (0, 0)
@@ -95,6 +95,8 @@ class IsoGrid:
 
         self.assemble_map()  # Reassemble the map based on the new rotation
 
+        self.event_manager.queue_event(EV_GRID_ROTATED_R, rotation_index=self.rotation_index)
+
     def assemble_map(self):
         """Assemble the Tile objects and render list by iterating through the active map_data."""
         self.tiles.clear()  # Clear the tiles dictionary
@@ -137,28 +139,22 @@ class IsoGrid:
             selected_tile_index = self.render_list.index((self.selected_tile.sprite, self.selected_tile.pos))
             self.render_list.insert(selected_tile_index + 1, (self.tile_selected_sprite, self.selected_tile.pos))
 
-        # Calculate the bounds of the isometric grid
-        min_x, min_y = float('inf'), float('inf')
-        max_x, max_y = float('-inf'), float('-inf')
+        # Blit all the tiles onto a single surface for easier rendering
+            # Determine the size of the Surface rect
+        width = self.rows_cols[0] * self.tile_width
+        height = self.rows_cols[1] * self.tile_height
+        y_offset = (self.tile_height // 2) * (self.rows_cols[1] - 1)
 
+            # Create a new surface for the full map
+        self.full_map_surf = pygame.Surface((width, height))
+        self.full_map_surf.set_colorkey((0, 0, 0))  
+        self.full_map_surf.fill((0, 0, 0))
+
+            # Blit each tile onto the full map surface
         for sprite, pos in self.render_list:
-            min_x = min(min_x, pos[0])
-            min_y = min(min_y, pos[1])
-            max_x = max(max_x, pos[0])
-            max_y = max(max_y, pos[1])
-
-        # Calculate the size of the full_map_surf based on the bounds
-        width = int(max_x - min_x + c.TILE_WIDTH)
-        height = int(max_y - min_y + c.TILE_HEIGHT)
-        self.full_map_surf = pygame.Surface((width, height), pygame.SRCALPHA)
-        print(f"full_map_surf: {self.full_map_surf.get_size()}")
-
-        # Offset all tile positions to align the top-left corner with (0, 0)
-        x_offset = -min_x
-        y_offset = -min_y
-        for sprite, pos in self.render_list:
-            adjusted_pos = (pos[0] + x_offset, pos[1] + y_offset)
+            adjusted_pos = (pos[0], pos[1] + y_offset)
             self.full_map_surf.blit(sprite, adjusted_pos)
+
 
     def iso_to_cart(self, iso_pos, width=0, height=0, with_offset=0):
         """Takes an isometric grid position and returns the screen coords
@@ -325,7 +321,8 @@ class IsoGrid:
         col = int((x / (c.TILE_WIDTH)) - (y / c.TILE_WIDTH_HALF))
         row = int((y / c.TILE_WIDTH_HALF) + (x / (c.TILE_WIDTH)))
         return row, col
-        pass
+    
+
 
 
 
