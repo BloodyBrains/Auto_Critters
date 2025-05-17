@@ -17,26 +17,30 @@ class EventManager:
                           pygame.MOUSEBUTTONUP]
                   
         pygame.event.set_allowed(allowed_events)
+        pygame.event.clear()
 
 
-    def get_events(self):
+    def handle_events(self):
         """
         Handles events from the pygame event queue.
         """
         for event in pygame.event.get():
             if event.type in self.events:
-                self.notify(event)            
+                self.notify(event)
+            elif event.type == pygame.KEYDOWN:
+                if event.key in self.events:
+                    self.notify(event)
+            elif event.type == pygame.KEYUP:
+                if event.key in self.events:
+                    self.notify(event)          
 
 
-    def subscribe(self, event_types, listener: EventListener):
+    def subscribe(self, listener: EventListener):
         """
         Subscribe a listener (observer) to specific event types.
         """
 
-        if not isinstance(event_types, list): # Ensure event_types is a list
-            event_types = [event_types]
-
-        for event in event_types:
+        for event in listener.subscriptions:
             if event not in self.events:
                 self.events[event] = []
             self.events[event].append(listener)
@@ -63,6 +67,16 @@ class EventManager:
         """
         if event.type in self.events:
             for listener in self.events[event.type]:
+                handled = listener.notify(event)
+                if handled:
+                    break
+        elif event.type == pygame.KEYDOWN:
+            for listener in self.events[event.key]:
+                handled = listener.notify(event)
+                if handled:
+                    break
+        elif event.type == pygame.KEYUP:
+            for listener in self.events[event.key]:
                 handled = listener.notify(event)
                 if handled:
                     break

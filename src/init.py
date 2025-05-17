@@ -4,7 +4,9 @@ import constants as c
 from game import Game
 from camera import Camera
 from events import EventManager
+from game_states import StateManager
 from gui import GUIManager
+from render import RenderManager
 
 # Initialize Pygame
 pygame.init()
@@ -39,11 +41,19 @@ def get_gui_manager():
     """
     return GUIManager()
 
-def get_game_states():
+def get_render_manager():
+    """
+    Create a render manager object for handling rendering.
+    """
+    return RenderManager()
+
+def get_game_states(state_mgr):
     """
     Create a game states object for managing different game states.
     """
-    return c.GAME_STATES
+    for state in c.GAME_STATES:
+        states = state_mgr.add_state(state, c.GAME_STATES[state])
+    return states
 
 
 
