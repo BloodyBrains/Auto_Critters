@@ -15,6 +15,7 @@ def get_display():
     """
     Create the display surface for the game.
     """
+    c.MONITOR_SIZE = [pygame.display.Info().current_w, pygame.display.Info().current_h]
     return pygame.display.set_mode(c.DISPLAY_SIZE)
 
 def get_clock():

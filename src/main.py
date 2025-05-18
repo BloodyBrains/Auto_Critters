@@ -33,6 +33,7 @@ def main():
     # Start the game loop
     game_controller.run()
 
+    pygame.display.quit()
     pygame.quit()
     sys.exit()
 

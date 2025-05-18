@@ -58,6 +58,7 @@ class Game:
         """
         Render the game state.
         """
+        self.display.fill(c.BLACK)
         self.active_state.render()    
 
     def handle_events(self):

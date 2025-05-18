@@ -24,6 +24,8 @@ class IsoGrid:
         self.tile_sprites = grid_tile_sprites
         self.wall_sprites = elevation_sprites
         self.map_data = map_data
+        # Get the maximum elevation from the map data
+        self.max_elevation = max(tile[1] for row in self.map_data for tile in row)
         self.full_map_surf = None
         
         self.listener = IsoGridEventListener(self)
@@ -97,42 +99,44 @@ class IsoGrid:
 
         self.event_manager.queue_event(EV_GRID_ROTATED_R, rotation_index=self.rotation_index)
 
+
+
     def assemble_map(self):
         """Assemble the Tile objects and render list by iterating through the active map_data."""
         self.tiles.clear()  # Clear the tiles dictionary
         self.render_list = []  # Clear the render list
         active_map_data = self.map_data_rotated[self.rotation_index]  # Use the active rotated map
 
-        # Create a tuple of unique elevation levels
-        height_list = tuple(sorted(set(tile[1] for row in active_map_data for tile in row)))
+        tile_layers = [[] for _ in range(self.max_elevation + 1)]  # Holds unsorted (tile_sprite, (x, y)) tuples for each elevation level
+        wall_layers = [[] for _ in range(self.max_elevation + 1)]  # Holds unsorted (wall_sprite, (x, y)) tuples for each elevation level
 
-        unsorted = []
-        for elevation in height_list:
-            for row_iter, row in enumerate(active_map_data):
-                for col_iter, tile in enumerate(row):
-                    if tile[1] == elevation:
-                        if tile[0] == 0:
-                            # Calculate Cartesian coordinates for the tile
-                            cart_x = (row_iter * c.TILE_WIDTH_HALF) + (col_iter * c.TILE_WIDTH_HALF)
-                            cart_y = (row_iter * c.TILE_HEIGHT_HALF) - (col_iter * c.TILE_HEIGHT_HALF)
-                            cart_y -= elevation * c.TILE_ELEVATION
+        for ri, row in enumerate(active_map_data):
+            for ci, tile in enumerate(row):
+                if tile[0] == 0:  # Valid tile
+                    # Handle wall sprites for elevation levels > 0
+                    for elevation in range(0, tile[1]):
+                        cart_x = (ci * c.TILE_WIDTH_HALF) + (ri * c.TILE_WIDTH_HALF)
+                        cart_y = -(ci * c.TILE_HEIGHT_HALF) + (ri * c.TILE_HEIGHT_HALF)
+                        cart_y -= (elevation) * c.TILE_ELEVATION
 
-                            # Create the Tile object
-                            new_tile = Tile((row_iter, col_iter), (cart_x, cart_y), self.tile_sprites['dirtsand'], elevation)
-                            self.tiles[(row_iter, col_iter)] = new_tile  # Store in dictionary
+                        surf = self.wall_sprites['elevated_1']  # Example wall sprite
+                        wall_layers[elevation].append((surf, (cart_x, cart_y)))
 
-                            # Append to unsorted list
-                            unsorted.append((new_tile.sprite, new_tile.pos))
+                    # Handle tile sprite
+                    cart_x = (ri * c.TILE_WIDTH_HALF) + (ci * c.TILE_WIDTH_HALF)
+                    cart_y = (ri * c.TILE_HEIGHT_HALF) - (ci * c.TILE_HEIGHT_HALF)
+                    cart_y -= tile[1] * c.TILE_ELEVATION
 
-                    elif tile[1] > elevation:
-                        cart_x = (col_iter * (self.tile_width / 2)) + (row_iter * (self.tile_width / 2))
-                        cart_y = -(col_iter * (self.tile_height / 2)) + (row_iter * (self.tile_height / 2)) 
-                        surf = self.wall_sprites['elevated_1']
-                        unsorted.append((surf, (cart_x, cart_y - (elevation * c.TILE_ELEVATION))))
+                    surf = self.tile_sprites['dirtsand']  # Example tile sprite
+                    tile_layers[tile[1]].append((surf, (cart_x, cart_y)))
 
-        sorted_y = self.sort_by_y(unsorted)
-        for item in sorted_y:
-            self.render_list.append(item)
+        # Sort and append each layer to the render_list
+        for elevation in range(self.max_elevation + 1):
+            tile_layers[elevation].sort(key=lambda item: item[1][1])  # Sort by y position
+            wall_layers[elevation].sort(key=lambda item: item[1][1])  # Sort by y position
+
+            self.render_list.extend(tile_layers[elevation])
+            self.render_list.extend(wall_layers[elevation])
 
         # Insert the selected_tile
         if self.selected_tile:
@@ -154,6 +158,7 @@ class IsoGrid:
         for sprite, pos in self.render_list:
             adjusted_pos = (pos[0], pos[1] + y_offset)
             self.full_map_surf.blit(sprite, adjusted_pos)
+
 
 
     def iso_to_cart(self, iso_pos, width=0, height=0, with_offset=0):
@@ -263,7 +268,7 @@ class IsoGrid:
         to the game window."""
 
         visible_rect = pygame.Rect(
-            cam_pos[0], cam_pos[1], c.NATIVE_WIDTH, c.NATIVE_HEIGHT)
+            cam_pos[0], cam_pos[1], c.MONITOR_SIZE[0], c.MONITOR_SIZE[1])
         game_win.blit(self.full_map_surf, (0, 0), visible_rect)
 
 

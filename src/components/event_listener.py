@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from pygame.locals import QUIT, MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP, K_LEFT, K_RIGHT, K_UP, K_DOWN, K_TAB
+from pygame.locals import QUIT, MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP, K_LEFT, K_RIGHT, K_UP, K_DOWN, K_TAB, K_ESCAPE
 
 from constants import CAM_SPEED
 
@@ -81,7 +81,7 @@ class GameEventListener(EventListener):
         :param subscriptions: A list of event types to subscribe to.
         """
         self.game = game
-        self.subscriptions = [QUIT]
+        self.subscriptions = [K_ESCAPE, QUIT]
 
     def on_event(self, event):
         """
@@ -97,7 +97,7 @@ class GameEventListener(EventListener):
         Notify the listener of a game event.
         """
         
-        if event.type == QUIT:
+        if event.type == QUIT or event.key == K_ESCAPE:
             self.game.running = False
 
 

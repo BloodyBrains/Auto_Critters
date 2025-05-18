@@ -1,8 +1,10 @@
 import os
+import pygame
 
 
 #DISPLAY--------------------------------------------------------
 FULL_SCREEN = False
+MONITOR_SIZE = None # Set during initialization
 SCALE = 1
 FPS = 60
 CAM_SPEED = 3
@@ -50,4 +52,25 @@ TILE_SIZE = (TILE_WIDTH, TILE_HEIGHT)
 TILE_WIDTH_HALF = 96
 TILE_HEIGHT_HALF = 48
 TILE_ELEVATION = 16
+
+# COLORS----------------------------------------------------
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+RED = (255, 0, 0)
+GREEN = (0, 255, 0)
+BLUE = (0, 0, 255)
+YELLOW = (255, 255, 0)
+PURPLE = (128, 0, 128)
+CYAN = (0, 255, 255)
+ORANGE = (255, 165, 0)
+DARK_GRAY = (169, 169, 169)
+LIGHT_GRAY = (211, 211, 211)
+DARK_BLUE = (0, 0, 139)
+DARK_GREEN = (0, 100, 0)
+DARK_RED = (139, 0, 0)
+DARK_PURPLE = (128, 0, 128)
+DARK_CYAN = (0, 139, 139)
+DARK_ORANGE = (255, 140, 0)
+DARK_YELLOW = (255, 215, 0)
+
 

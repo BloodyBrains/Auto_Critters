@@ -1,5 +1,6 @@
 import pygame
 import sys
+import constants
 from components.event_listener import EventListener
 
 class EventManager:
@@ -28,7 +29,13 @@ class EventManager:
             if event.type in self.events:
                 self.notify(event)
             elif event.type == pygame.KEYDOWN:
-                if event.key in self.events:
+                if event.key == pygame.K_f:
+                    constants.FULL_SCREEN = not constants.FULL_SCREEN
+                    if constants.FULL_SCREEN:
+                        pygame.display.set_mode(constants.MONITOR_SIZE, pygame.FULLSCREEN)
+                    else:
+                        pygame.display.set_mode(constants.DISPLAY_SIZE)
+                elif event.key in self.events:
                     self.notify(event)
             elif event.type == pygame.KEYUP:
                 if event.key in self.events:
