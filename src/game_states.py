@@ -1,8 +1,10 @@
 from pygame import Surface
 
-from assets import main_menu_sprites
+from components.animation_ctrl import Animation_Ctrl
+from assets import main_menu_sprites, dragon_sprites, shroom_sprites
 from battle_maps.maps import maps_data
 from camera import Camera
+from creatures import PuffCreature, ShroomCreature
 from iso_grid import IsoGrid
 #from constants import RENDER_LAYERS
 #from components.renderable import Renderable
@@ -118,8 +120,17 @@ class BattleState(GameState):
     def __init__(self, state_mgr, game_ctrl, event_mgr, map_data=None):
         super().__init__(state_mgr, game_ctrl, event_mgr)
         self.map_data = map_data
-        self.iso_grid = IsoGrid(self.map_data, self.event_manager)
+        """DEBUG"""
+        anim_ctrl = Animation_Ctrl(dragon_sprites['puff'])
+        anim_ctrl_2 = Animation_Ctrl(shroom_sprites['shroom_1'])
+        self.critter = PuffCreature('puff', anim_ctrl)
+        self.critter_2 = ShroomCreature('shroom', anim_ctrl_2)
+        """--------"""
+        self.iso_grid = IsoGrid(self.map_data, self.event_manager, self.critter, self.critter_2)
         self.cam = Camera(self.event_manager)
+
+        
+        
 
     def enter(self):
         print("Entering Battle State")
@@ -131,9 +142,13 @@ class BattleState(GameState):
     def handle_events(self, events):
         pass
 
-    def update(self):
+    def update(self, dt):
         self.cam.update()
         self.iso_grid.update()
+        """DEBUG"""
+        self.critter.update(dt) 
+        self.critter_2.update(dt)  
+        """--------"""
 
     def render(self):
         self.iso_grid.render(self.game_ctrl.display, self.cam.pos)  

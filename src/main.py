@@ -1,6 +1,10 @@
 import sys
 import pygame
 
+"""DEBUG"""
+import cProfile
+"""------"""
+
 import constants as c
 from assets import load_assets
 import init
@@ -39,3 +43,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+    
+    """DEBUG"""
+    #cProfile.run("main()")
+    """------"""

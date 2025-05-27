@@ -1,4 +1,7 @@
 from pygame import display as pg_display
+"""DEBUG"""
+import time
+"""------"""
 
 import constants as c
 from components.event_listener import GameEventListener
@@ -41,18 +44,22 @@ class Game:
         """
         Main game loop.
         """
+
+        dt = 0
+
         while self.running:
             self.handle_events()
-            self.update()
+            self.update(dt)
             self.render()
             pg_display.update()
-            self.clock.tick(c.FPS)
+            dt = self.clock.tick(c.FPS)
+            #print(f"FPS: {self.clock.get_fps()}") #DEBUG
 
-    def update(self):
+    def update(self, dt):
         """
         Update the game state.
         """
-        self.active_state.update()
+        self.active_state.update(dt)
 
     def render(self):
         """

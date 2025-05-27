@@ -1,5 +1,7 @@
 import pygame
 import sys
+
+from assets import load_assets
 import constants
 from components.event_listener import EventListener
 
@@ -33,10 +35,14 @@ class EventManager:
                     constants.FULL_SCREEN = not constants.FULL_SCREEN
                     if constants.FULL_SCREEN:
                         pygame.display.set_mode(constants.MONITOR_SIZE, pygame.FULLSCREEN)
+                        #load_assets()
                     else:
                         pygame.display.set_mode(constants.DISPLAY_SIZE)
                 elif event.key in self.events:
                     self.notify(event)
+                elif event.key == pygame.K_SPACE:
+                    constants.SPACE_PRESSED = 1
+                    print(constants.SPACE_PRESSED)
             elif event.type == pygame.KEYUP:
                 if event.key in self.events:
                     self.notify(event)          

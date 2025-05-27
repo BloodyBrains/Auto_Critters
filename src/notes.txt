@@ -1,0 +1,8 @@
+#1 The full_map_surf Surface that the IsoGrid is blitted on 
+    is a rectangle with origin at top left (0,0). The IsoGrid 
+    is a diamond, with the origin at the center left. If the 
+    IsoGrid is blitted on the full_map_surf Surface at the 
+    origin, the top half of the grid will not get rendered because
+    it would extend oustide of Surface bounds. To accomodate, the 
+    y positions of the grid tiles must be shifted lower so the 
+    entire grid fits on the full_map_surf Surface. 

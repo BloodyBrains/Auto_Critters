@@ -3,6 +3,7 @@ import pygame
 
 import constants as c
 from components.event_listener import IsoGridEventListener
+from creatures import Creature
 from assets import battlestate_sprites, grid_tile_sprites, elevation_sprites
 from events import EV_GRID_ROTATED_L, EV_GRID_ROTATED_R
 
@@ -18,7 +19,9 @@ class Tile:
         return f"Tile(iso_pos={self.iso_pos}, elevation={self.elevation})"
 
 class IsoGrid:
-    def __init__(self, map_data, event_manager):
+    def __init__(self, map_data, event_manager, critter, critter_2):
+        self.critter = critter
+        self.critter_2 = critter_2
         self.tile_width = c.TILE_WIDTH
         self.tile_height = c.TILE_HEIGHT
         self.tile_sprites = grid_tile_sprites
@@ -50,8 +53,6 @@ class IsoGrid:
 
         self.rotation_index = 0  # Start with the default rotation (0°)
 
-        #self.start_x = c.CAM_STARTX
-        #self.start_y = c.CAM_STARTY
         self.assemble_map()  # Assemble the render list
 
     
@@ -109,34 +110,56 @@ class IsoGrid:
 
         tile_layers = [[] for _ in range(self.max_elevation + 1)]  # Holds unsorted (tile_sprite, (x, y)) tuples for each elevation level
         wall_layers = [[] for _ in range(self.max_elevation + 1)]  # Holds unsorted (wall_sprite, (x, y)) tuples for each elevation level
+        """DEBUG"""
+        creature_layers = [[] for _ in range(self.max_elevation + 1)]  # Holds unsorted (creature_sprite, (x, y)) tuples for each elevation level
+        """-------"""
+        # Calculate an offset to adjust for the isometric perspective. See notes.txt #1
+        y_offset = (self.tile_height // 2) * (self.rows_cols[1] - 1)
 
         for ri, row in enumerate(active_map_data):
             for ci, tile in enumerate(row):
-                if tile[0] == 0:  # Valid tile
-                    # Handle wall sprites for elevation levels > 0
+                if tile[0] == 0:  # If tile sprite is 'dirt'
+                    # Handle wall sprites for tile
                     for elevation in range(0, tile[1]):
                         cart_x = (ci * c.TILE_WIDTH_HALF) + (ri * c.TILE_WIDTH_HALF)
                         cart_y = -(ci * c.TILE_HEIGHT_HALF) + (ri * c.TILE_HEIGHT_HALF)
                         cart_y -= (elevation) * c.TILE_ELEVATION
+                        cart_y += y_offset                        
 
-                        surf = self.wall_sprites['elevated_1']  # Example wall sprite
+                        surf = self.wall_sprites['tile_elevation_test']  # Example wall sprite
                         wall_layers[elevation].append((surf, (cart_x, cart_y)))
 
                     # Handle tile sprite
+                        # Calculate position
                     cart_x = (ri * c.TILE_WIDTH_HALF) + (ci * c.TILE_WIDTH_HALF)
                     cart_y = (ri * c.TILE_HEIGHT_HALF) - (ci * c.TILE_HEIGHT_HALF)
                     cart_y -= tile[1] * c.TILE_ELEVATION
+                    cart_y += y_offset
 
-                    surf = self.tile_sprites['dirtsand']  # Example tile sprite
+                        # Create the Tile object
+                    surf = self.tile_sprites['dirt']  
+                    new_tile = Tile((ri, ci), (cart_x, cart_y), surf, tile[1])
+                    self.tiles[(ri, ci)] = new_tile  # Store in dictionary
+
+                        # Append sprite to the tile layer
                     tile_layers[tile[1]].append((surf, (cart_x, cart_y)))
+
+        """DEBUG"""
+        #adjusted_y = (self.critter.pos[0], self.critter.pos[1] - (self.tile_height // 2) * (self.rows_cols[1] - 1))
+        wall_layers[self.critter.elevation].append((self.critter.image, self.critter.pos))
+        for i, slice in enumerate(self.critter_2.image):
+            wall_layers[self.critter_2.elevation[i]].append((self.critter_2.image[i], (self.critter_2.pos[0], self.critter_2.pos[1] + (i * c.TILE_ELEVATION))))
+        """-------"""
 
         # Sort and append each layer to the render_list
         for elevation in range(self.max_elevation + 1):
             tile_layers[elevation].sort(key=lambda item: item[1][1])  # Sort by y position
             wall_layers[elevation].sort(key=lambda item: item[1][1])  # Sort by y position
+            #creature_layers[elevation].sort(key=lambda item: item[1][1])
 
             self.render_list.extend(tile_layers[elevation])
             self.render_list.extend(wall_layers[elevation])
+            #self.render_list.extend(creature_layers[elevation])
 
         # Insert the selected_tile
         if self.selected_tile:
@@ -147,7 +170,7 @@ class IsoGrid:
             # Determine the size of the Surface rect
         width = self.rows_cols[0] * self.tile_width
         height = self.rows_cols[1] * self.tile_height
-        y_offset = (self.tile_height // 2) * (self.rows_cols[1] - 1)
+            
 
             # Create a new surface for the full map
         self.full_map_surf = pygame.Surface((width, height))
@@ -156,8 +179,7 @@ class IsoGrid:
 
             # Blit each tile onto the full map surface
         for sprite, pos in self.render_list:
-            adjusted_pos = (pos[0], pos[1] + y_offset)
-            self.full_map_surf.blit(sprite, adjusted_pos)
+            self.full_map_surf.blit(sprite, pos)
 
 
 
@@ -197,6 +219,13 @@ class IsoGrid:
             cart_y += camera.Camera.offset_y
         '''
         return (cart_x, cart_y)
+    
+    """DEBUG"""
+    def print_tile_pos(self):
+        """Prints the Cartesian position of each tile in the grid."""
+        for tile in self.tiles.values():
+                print(f"{tile.iso_pos} {tile.pos}")
+    """-----------"""
     
     
     def cart_to_iso(self, screen_pos, adjusted_for_cam = False):
@@ -260,7 +289,15 @@ class IsoGrid:
 
     def sort_by_y(self, unsorted):
         """Sort the given list by the y-coordinate (cart_y) in ascending order."""
-        return sorted(unsorted, key=lambda item: item[1][1])
+        #return sorted(unsorted, key=lambda item: item[1][1])
+        return sorted(
+        unsorted,
+        key=lambda item: (
+            item[1][1],  # Primary: y-coordinate (cart_y)
+            item[1][1] - item[1][0],  # Secondary: elevation (higher elevation later)
+            1 if isinstance(item[0], Creature) else 0  # Tertiary: prioritize creatures
+        )
+    )
     
 
     def render(self, game_win, cam_pos):
@@ -268,12 +305,13 @@ class IsoGrid:
         to the game window."""
 
         visible_rect = pygame.Rect(
-            cam_pos[0], cam_pos[1], c.MONITOR_SIZE[0], c.MONITOR_SIZE[1])
+            cam_pos[0], cam_pos[1], c.DISPLAY_WIDTH, c.DISPLAY_HEIGHT)
         game_win.blit(self.full_map_surf, (0, 0), visible_rect)
 
 
     def update(self):
-        pass
+        if self.critter.dirty:
+            self.assemble_map()
 
 
     def notify(self, event, **event_data):

@@ -1,5 +1,4 @@
 import os
-import pygame
 
 
 #DISPLAY--------------------------------------------------------
@@ -25,6 +24,9 @@ DISPLAY_SIZE = (DISPLAY_WIDTH, DISPLAY_HEIGHT)
 
 #ASSETS----------------------------------------------------
 ASSETS_SPRITES = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'assets\sprites')
+SPRITE_SIZE = (50, 50) # Default
+ANIM_FRAME_SPEED = 300 # Default
+
 
 #GAME STATES----------------------------------------------------
 START_SCREEN = "start"
@@ -46,12 +48,19 @@ RENDER_LAYERS = {
 }
 
 #TILE GRID----------------------------------------------------
-TILE_WIDTH = 192
-TILE_HEIGHT = 96
+#TILE_WIDTH = 192
+#TILE_HEIGHT = 96
+#TILE_SIZE = (TILE_WIDTH, TILE_HEIGHT)
+#TILE_WIDTH_HALF = 96
+#TILE_HEIGHT_HALF = 48
+#TILE_ELEVATION = 16
+
+TILE_WIDTH = 100
+TILE_HEIGHT = 50
 TILE_SIZE = (TILE_WIDTH, TILE_HEIGHT)
-TILE_WIDTH_HALF = 96
-TILE_HEIGHT_HALF = 48
-TILE_ELEVATION = 16
+TILE_WIDTH_HALF = 50
+TILE_HEIGHT_HALF = 25
+TILE_ELEVATION = 20
 
 # COLORS----------------------------------------------------
 WHITE = (255, 255, 255)
@@ -73,4 +82,6 @@ DARK_CYAN = (0, 139, 139)
 DARK_ORANGE = (255, 140, 0)
 DARK_YELLOW = (255, 215, 0)
 
+# DEBUG----------------------------------------------------
+SPACE_PRESSED = 0
 

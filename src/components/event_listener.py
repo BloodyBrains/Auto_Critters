@@ -3,6 +3,7 @@ from pygame.locals import QUIT, MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP, 
 
 from constants import CAM_SPEED
 
+
 class EventListener(ABC):
     """
     Abstract base class for event listeners.

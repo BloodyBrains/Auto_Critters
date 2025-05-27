@@ -1,0 +1,9 @@
+RENDERING
+    - Prevent the camera from moving out of the game world
+        boundaries
+    - Draw a battle map specific border around the IsoGrids
+        so it doesn't appear to be floating in the void of 
+        space. One way would be to create a png that is
+        the same size as the the IsoGrid.full_map_surf with
+        scenery just outside of where the grid will be drawn.
+        This way it only ever needs to be blitted once.
